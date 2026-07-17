@@ -84,9 +84,7 @@ const lessonData = [
     ["叶掌", "yè zhǎng", "leaf palm", "daun yang lebar"],
     ["晒晒", "shài shài", "to sun-dry", "menjemur"],
     ["。", "", "", ""],
-
-    ["\n", "", "", ""], // 👈 第2节
-
+    ["<br>", "", "", ""],
     ["到", "dào", "Go", "Pergi ke"],
     ["小径", "xiǎo jìng", "path", "jalan kecil"],
     ["中去", "zhōng qù", "to", "pergi ke"],
@@ -110,9 +108,7 @@ const lessonData = [
     ["涉过", "shè guò", "wading across", "menyeberangi"],
     ["溪流", "xī liú", "stream", "sungai kecil"],
     ["。", "", "", ""],
-
-    ["\n", "", "", ""], // 👈 第3节
-
+    ["<br>", "", "", ""],
     ["新阳", "xīn yáng", "The new sun", "Matahari baru"],
     ["推开了", "tuī kāi le", "pushes away", "menyingkirkan"],
     ["阴霾", "yīn mái", "haze", "kabut"],
