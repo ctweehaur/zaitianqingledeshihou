@@ -1,9 +1,9 @@
 // ==========================================================================
-// 📝 《在天晴了的时候》综合练习题库 (questions.js) - 四项字数严格一致防盲猜版
+// 📝 《在天晴了的时候》综合练习题库 (questions.js) - 题号对齐与四项等字数精修版
 // ==========================================================================
 
 const PT = (pts) => `<span style="display:inline-block; background:var(--primary-color); color:#fff; font-size:11px; font-weight:800; padding:0 5px; margin:0 3px; border-radius:4px;">[${pts}分]</span>`;
-const QUOTE_BOX = (text) => `<div style="margin:6px 0 10px 0; padding:8px 12px; background:var(--notebook-bg); border-left:3px solid var(--primary-color); border-radius:4px; font-weight:600; font-size:14.5px; color:var(--text-color); line-height:1.65;">${text}</div>`;
+const QUOTE_BOX = (text) => `<div style="margin:8px 0 10px 0; padding:8px 12px; background:var(--notebook-bg); border-left:3px solid var(--primary-color); border-radius:4px; font-weight:600; font-size:14.5px; color:var(--text-color); line-height:1.65;">${text}</div>`;
 const HL = (text) => `<u style="text-decoration:underline; text-decoration-thickness:2px; text-underline-offset:4px; color:var(--primary-color); font-weight:800;">${text}</u>`;
 
 // ==========================================================================
@@ -12,7 +12,7 @@ const HL = (text) => `<u style="text-decoration:underline; text-decoration-thick
 const quizDataList = [
     {
         id: 1,
-        question: `${QUOTE_BOX("给雨润过的泥路，/ 一定是凉爽又温柔；")}在诗歌第一节中，诗人为什么用“凉爽又温柔”来形容给雨润过的泥路？`,
+        question: `在诗歌第一节中，诗人为什么用“凉爽又温柔”来形容给雨润过的泥路？${QUOTE_BOX("给雨润过的泥路，/ 一定是凉爽又温柔；")}`,
         options: [
             "A 泥路铺满了鹅卵石，踩上去十分坚硬冰冷。", // 19字
             "B 雨水冲毁了小泥路，使行人无法正常通行。", // 19字
@@ -36,7 +36,7 @@ const quizDataList = [
     },
     {
         id: 3,
-        question: `${QUOTE_BOX("不再胆怯的小白菊，/ 慢慢地抬起它的头，/ 试试寒，试试暖，/ 然后一瓣瓣地绽透；")}第二节描写“小白菊”的诗句采用了什么修辞手法？有什么表达效果？（理解解析第2题）`,
+        question: `第二节描写“小白菊”的诗句采用了什么修辞手法？有什么表达效果？（理解解析第2题）${QUOTE_BOX("不再胆怯的小白菊，/ 慢慢地抬起它的头，/ 试试寒，试试暖，/ 然后一瓣瓣地绽透；")}`,
         options: [
             "A 比拟（拟人）；摹写花瓣舒展的娇羞与生趣。", // 20字
             "B 夸张与反问；说明小白菊非常害怕寒冷天气。", // 20字
@@ -60,7 +60,7 @@ const quizDataList = [
     },
     {
         id: 5,
-        question: `${QUOTE_BOX("到小径中去走走吧，/ 在天晴了的时候：")}第三节开头这两行诗句与第一节开头“在天晴了的时候，/ 该到小径中去走走”相比，在句式与结构上有什么特点？`,
+        question: `第三节开头这两行诗句与第一节开头“在天晴了的时候，/ 该到小径中去走走”相比，在句式与结构上有什么特点？${QUOTE_BOX("到小径中去走走吧，/ 在天晴了的时候：")}`,
         options: [
             "A 主谓倒装完全相反，表达诗人的犹豫不决。", // 19字
             "B 状语后置回环复沓，加强召唤出游的语气。", // 19字
@@ -111,7 +111,7 @@ const quizDataList = [
         question: "根据课本《现代诗的特点与朗读技巧》知识专栏，下列关于本诗韵律与朗读技巧的说明，哪一项是正确的？",
         options: [
             "A 本诗每行字数固定七字，须用悲壮语调读。", // 19字
-            "B 本诗主要押 ou/iu 韵，宜用轻快明朗语调读。", // 21->19字: 本诗主要押 ou 韵，宜用轻快明朗语调读。
+            "B 本诗主要押 ou 韵，宜用轻快明朗语调读。", // 19字
             "C 现代诗完全不能押韵，朗读时不需有停顿。", // 19字
             "D 戴望舒被称为诗仙，本诗是他的早期雨巷。"  // 19字
         ],
