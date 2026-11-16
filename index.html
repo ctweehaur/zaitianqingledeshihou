@@ -401,7 +401,7 @@
             text-decoration-color: currentColor;
         }
 
-        /* 📍 点击题目“第X段”时的左侧课文水墨呼吸高亮动画 */
+        /* 📍 点击题目“第X段/句/节”时的左侧课文水墨呼吸高亮动画 */
         @keyframes paragraphPulse {
             0% { background-color: var(--accent-bg); box-shadow: 0 0 0 6px var(--accent-bg); }
             70% { background-color: var(--accent-bg); box-shadow: 0 0 0 6px var(--accent-bg); }
@@ -435,7 +435,7 @@
             border-color: var(--primary-color);
         }
 
-        /* 📍 右侧题目中的“📍第X段”可点击定位芯片 */
+        /* 📍 右侧题目中的“📍第X段/句/节/阕”可点击定位芯片 */
         .para-jump-link {
             display: inline-flex;
             align-items: center;
@@ -1037,6 +1037,25 @@
         let userSelectedAnswers = {};
         let currentFontSize = parseFloat(localStorage.getItem('reader_pref_font_size')) || 19.5;
 
+        /* 🏷️ 智能文体单位识别器：自动适配“第X段”、“第X句”、“第X节”、“第X层”、“上阕/下阕” */
+        function getSectionLabel(index) {
+            if (typeof sectionUnit !== 'undefined' && sectionUnit) {
+                return `第${index}${sectionUnit}`;
+            }
+            const pMap = (typeof lessonTeacherAnalysis !== 'undefined' && lessonTeacherAnalysis.paragraphs) ? lessonTeacherAnalysis.paragraphs : null;
+            const currentRaw = (pMap && pMap[index]) ? pMap[index] : '';
+            const firstRaw = (pMap && pMap[1]) ? pMap[1] : '';
+            const sample = currentRaw || firstRaw;
+
+            if (/【上阕|（上阕）|^上阕/.test(currentRaw)) return '上阕';
+            if (/【下阕|（下阕）|^下阕/.test(currentRaw)) return '下阕';
+            if (/【第[一二三四五六七八九十\d]+句|首句|次句|第三句|第四句|末句/.test(sample)) return `第${index}句`;
+            if (/【第[一二三四五六七八九十\d]+节/.test(sample)) return `第${index}节`;
+            if (/【第[一二三四五六七八九十\d]+层/.test(sample)) return `第${index}层`;
+
+            return `第${index}段`;
+        }
+
         /* 🧠 智能词条解析器 */
         function extractWordMeanings(item) {
             if (!item) return { word: '', pinyin: '', zh: '', zhPlain: '', en: '', bm: '', isProperNoun: false };
@@ -1174,13 +1193,27 @@
             return null;
         }
 
+        /* 📍 智能链接转换器：支持“第X段/句/节/层”及古诗“首句/次句/末句/上阕/下阕”一键跳转定位 */
         function linkifyParagraphReferences(htmlText) {
             if (!htmlText) return "";
-            return htmlText.replace(/第\s*([0-9一二三四五六七八九十]+)\s*段/g, (match, numStr) => {
+            let result = htmlText.replace(/第\s*([0-9一二三四五六七八九十]+)\s*([段句节层])/g, (match, numStr, unit) => {
                 const pNum = parseChineseNumber(numStr);
                 if (!pNum) return match;
-                return `<span class="para-jump-link" onclick="scrollToParagraph(${pNum}, event)" title="点击定位至左侧课文第 ${pNum} 段">📍第${pNum}段</span>`;
+                return `<span class="para-jump-link" onclick="scrollToParagraph(${pNum}, event)" title="点击定位至左侧课文第 ${pNum} ${unit}">📍第${pNum}${unit}</span>`;
             });
+
+            const sample = getSectionLabel(1);
+            if (sample.endsWith('句')) {
+                result = result
+                    .replace(/首句/g, `<span class="para-jump-link" onclick="scrollToParagraph(1, event)" title="点击定位至左侧第 1 句">📍首句</span>`)
+                    .replace(/次句/g, `<span class="para-jump-link" onclick="scrollToParagraph(2, event)" title="点击定位至左侧第 2 句">📍次句</span>`)
+                    .replace(/末句/g, `<span class="para-jump-link" onclick="scrollToParagraph(4, event)" title="点击定位至左侧末句">📍末句</span>`);
+            } else if (sample === '上阕') {
+                result = result
+                    .replace(/上阕/g, `<span class="para-jump-link" onclick="scrollToParagraph(1, event)" title="点击定位至左侧上阕">📍上阕</span>`)
+                    .replace(/下阕/g, `<span class="para-jump-link" onclick="scrollToParagraph(2, event)" title="点击定位至左侧下阕">📍下阕</span>`);
+            }
+            return result;
         }
 
         function scrollToParagraph(pNum, event) {
@@ -1459,10 +1492,18 @@
                 }
             }
 
+            // 检测是否使用了双换行符（如多节现代新诗：节内单换行，节间双换行）
+            const hasDoubleNewline = (typeof lessonData !== 'undefined') && lessonData.some((item, idx) => 
+                item[0] === "\n" && idx + 1 < lessonData.length && lessonData[idx + 1][0] === "\n" && idx + 2 < lessonData.length - 8
+            );
+
             function finalizeParagraph(paragraphElement) {
                 if (paragraphElement.childNodes.length === 0) return;
                 const textContent = paragraphElement.innerText.trim();
-                const isAuthorLineAtEnd = (textContent.startsWith("（") && textContent.includes("《"));
+                const isAuthorLineAtEnd = (
+                    (textContent.startsWith("（") && textContent.includes("《")) ||
+                    (textContent.includes("（") && textContent.includes("《") && textContent.endsWith("）") && textContent.length < 40)
+                );
                 
                 if (isAuthorLineAtEnd) {
                     paragraphElement.style.textIndent = "0";
@@ -1473,15 +1514,16 @@
                     cnt.appendChild(paragraphElement);
                 } else {
                     const currentPNum = pNum;
+                    const secLabel = getSectionLabel(currentPNum);
                     paragraphElement.id = `article-p-${currentPNum}`;
                     paragraphElement.style.position = "relative";
-                    paragraphElement.style.textIndent = "2em"; 
+                    paragraphElement.style.textIndent = (hasDoubleNewline || secLabel.endsWith('句')) ? "0" : "2em"; 
                     paragraphElement.style.paddingLeft = "0"; 
                     paragraphElement.style.marginBottom = "25px";
                     
                     let s = document.createElement("span");
                     s.className = "p-index";
-                    s.innerText = `第${currentPNum}段`;
+                    s.innerText = secLabel;
                     
                     paragraphElement.insertBefore(s, paragraphElement.firstChild); 
                     cnt.appendChild(paragraphElement);
@@ -1491,7 +1533,7 @@
                         pAnalysis.id = `p-analysis-${currentPNum}`;
                         pAnalysis.className = "teacher-p-analysis";
                         pAnalysis.style.textIndent = "0";
-                        pAnalysis.innerHTML = `<strong>🔍 第 ${currentPNum} 段文本赏析：</strong>${linkifyParagraphReferences(lessonTeacherAnalysis.paragraphs[currentPNum])}`;
+                        pAnalysis.innerHTML = `<strong>🔍 ${secLabel}文本赏析：</strong>${linkifyParagraphReferences(lessonTeacherAnalysis.paragraphs[currentPNum])}`;
                         
                         pAnalysis.style.display = isTeacherMode ? "block" : "none";
                         cnt.appendChild(pAnalysis);
@@ -1501,24 +1543,45 @@
             }
 
             if (typeof lessonData !== 'undefined') {
-                lessonData.forEach((d, i) => {
-                    if (d[0] === "\n") { finalizeParagraph(p); p = document.createElement("p"); }
-                    else if (d[1] === "") { let s = document.createElement("span"); s.innerText = d[0]; p.appendChild(s); }
-                    else {
+                for (let i = 0; i < lessonData.length; i++) {
+                    const d = lessonData[i];
+                    if (d[0] === "\n") {
+                        if (hasDoubleNewline) {
+                            if (i + 1 < lessonData.length && lessonData[i + 1][0] === "\n") {
+                                finalizeParagraph(p);
+                                p = document.createElement("p");
+                                i++; // 跳过第二个换行符
+                            } else if (i >= lessonData.length - 12) {
+                                // 詩末落款前的单换行
+                                finalizeParagraph(p);
+                                p = document.createElement("p");
+                            } else {
+                                p.appendChild(document.createElement("br"));
+                            }
+                        } else {
+                            finalizeParagraph(p);
+                            p = document.createElement("p");
+                        }
+                    } else if (d[1] === "") {
+                        let s = document.createElement("span");
+                        s.innerText = d[0];
+                        p.appendChild(s);
+                    } else {
                         const m = extractWordMeanings(d);
                         let r = document.createElement("ruby"); 
                         r.setAttribute("data-word-index", i);
+                        const wordIdx = i;
                         r.onclick = (e) => { 
                             e.stopPropagation(); 
                             document.querySelectorAll('ruby').forEach(x=>x.classList.remove('is-active')); 
                             r.classList.add('is-active'); 
-                            openPop(e.currentTarget, i);
+                            openPop(e.currentTarget, wordIdx);
                         };
                         const wordHtml = m.isProperNoun ? `<span class="proper-noun">${m.word}</span>` : m.word;
                         r.innerHTML = `${wordHtml}<rt>${m.pinyin}</rt>`; 
                         p.appendChild(r);
                     }
-                });
+                }
                 finalizeParagraph(p);
             }
         }
